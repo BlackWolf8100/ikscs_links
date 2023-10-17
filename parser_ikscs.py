@@ -17,11 +17,6 @@ def main():
         time.sleep(0.5)
         count += 1
         sql = "SELECT `link` FROM parse_ikscs_links WHERE `status` IS NULL"
-
-        # urls = []
-        # db.cursor.execute(sql)
-        # for e in db.cursor.fetchall():
-        #    urls.append(e[0])
        
         db.cursor.execute(sql)
         urls = [e[0] for e in db.cursor.fetchall()]                    # спрацювало
