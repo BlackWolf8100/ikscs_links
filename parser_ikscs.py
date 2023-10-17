@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 from my_base import My_base
 
 
-
 def main():
 
 
