@@ -19,7 +19,7 @@ def main():
         sql = "SELECT `link` FROM parse_ikscs_links WHERE `status` IS NULL"
        
         db.cursor.execute(sql)
-        urls = [e[0] for e in db.cursor.fetchall()]                    # спрацювало
+        urls = [e[0] for e in db.cursor.fetchall()]                    
     
         for url in urls:
             link_for_save_set, data_uniq = process_one_page(url)
