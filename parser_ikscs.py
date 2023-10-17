@@ -2,7 +2,7 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from my_base import My_base
-
+from datetime import datetime, timedelta
 
 def main():
 
@@ -12,7 +12,9 @@ def main():
     
     count = 0 
     urls = [7]
-    while (len(urls) > 0) and count < 1:
+    start_time = datetime.now()
+    print(start_time)
+    while (len(urls) > 0) and datetime.now() - start_time < timedelta(seconds = 3600):
         print('Records:', len(urls), count)
         time.sleep(0.5)
         count += 1
@@ -43,6 +45,8 @@ def main():
                 values.append((*row, url))
             db.cursor.executemany(sql, values)
             db.mydb.commit()
+            if datetime.now() - start_time > timedelta(seconds = 3600):
+                break
         
     db.close()
     
@@ -100,7 +104,6 @@ def process_one_page(url):
         elif l.startswith('/'):
             l = 'https://'+ base + l
         l = l.split('#')[0]
-        print('!', l)
         if '/./' in l:
             pass
         link_for_save_set.add(l)
