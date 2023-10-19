@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 
 class My_base():
     def __init__(self):
-        with open('C:/Users/mykola/Desktop/mySQLpithon/credentials.json') as f:
+        with open('credentials.json') as f:
             self.cfg = json.load(f)
 
     def open(self):
