@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from my_base import My_base
 from datetime import datetime, timedelta
 
-WORK_TIME_SEC = 3000
+WORK_TIME_SEC = 300
 BASE = "ikscs.in.ua"
 
 def main():
