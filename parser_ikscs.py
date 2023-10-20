@@ -16,6 +16,7 @@ def main(BASE):
 
     db = My_base()
     db.open()
+    link_for_save_list = []
     sql = f'SELECT `link` FROM parse WHERE `status` = "COMPLETE" AND `domain` = "{BASE}" LIMIT 1'
     db.cursor.execute(sql)
     urls = [e[0] for e in db.cursor.fetchall()]
@@ -52,7 +53,7 @@ def main(BASE):
         urls = [e[0] for e in db.cursor.fetchall()]                    
     
         for url in urls:
-            link_for_save_set, data_uniq, status_code, tags, h_list = process_one_page(url)
+            link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list  = process_one_page(url)
             sql = f'UPDATE parse SET status_code = {status_code} WHERE link = "{url}"'
             db.cursor.execute(sql)
             
@@ -65,9 +66,11 @@ def main(BASE):
                 values = [(e, None) for e in link_for_save_set]
                 db.cursor.executemany(sql, values)
 
-                sql = f'INSERT IGNORE INTO parse_a (domain, src, href, anchor) VALUES ("{BASE}", "{url}", %s, %s)'
-                values = [(e, 'to do') for e in link_for_save_set]
+                sql = f'INSERT IGNORE INTO parse_a (domain, src, href, anchor) VALUES (%s, %s, %s, %s)'
+                values = [(BASE, url, link, a_text) for link, a_text in zip(link_for_save_list, a_text_list)]
                 db.cursor.executemany(sql, values)
+                db.mydb.commit()
+
 
 #ancros = link.text
             
@@ -116,6 +119,17 @@ def process_one_page(url):
     
     soup = BeautifulSoup(page, "html.parser")
     # soup = BeautifulSoup(page, "lxml")
+
+    
+    a_text_list = []
+
+    links = soup.find_all('a', href=True)
+    link_for_save_set = set()
+    link_for_save_list = []
+    for link in links:
+        l = link['href']
+        a_text = link.get_text(strip=True)
+        a_text_list.append(a_text)
 
 
     headings = soup.find_all(["h1", "h2", "h3"])
@@ -183,7 +197,7 @@ def process_one_page(url):
         link_for_save_set.add(l)
         link_for_save_list.append(l)
         
-    return link_for_save_set, uniq_data, status_code, tags, h_list
+    return link_for_save_set, uniq_data, status_code, tags, h_list, a_text_list, link_for_save_list
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
