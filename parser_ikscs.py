@@ -5,7 +5,7 @@ from my_base import My_base
 from datetime import datetime, timedelta
 import sys
 
-WORK_TIME_SEC = 300
+WORK_TIME_SEC = 3000
 SLEEP_TIME_SEC = 0.2
 # BASE = "ikscs.in.ua"
 # BASE = "ingener.in.ua"
