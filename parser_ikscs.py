@@ -53,7 +53,7 @@ def main(BASE):
         urls = [e[0] for e in db.cursor.fetchall()]                    
     
         for url in urls:
-            link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list  = process_one_page(url)
+            link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list, external_links  = process_one_page(url)
             sql = f'UPDATE parse SET status_code = {status_code} WHERE link = "{url}"'
             db.cursor.execute(sql)
             
@@ -71,6 +71,11 @@ def main(BASE):
                 db.cursor.executemany(sql, values)
                 db.mydb.commit()
 
+            if external_links:
+                sql = f'INSERT IGNORE INTO parse (domain, link) VALUES (%s, %s)'
+                values = [(BASE, external_link) for external_link in external_links]
+                db.cursor.executemany(sql, values)
+                db.mydb.commit()
 
 #ancros = link.text
             
@@ -105,22 +110,31 @@ def main(BASE):
     
 
 def process_one_page(url):
-    #url = 'https://ingener.in.ua'
-        
+    # url = 'https://ingener.in.ua'
+    tags = {'title': None, 'description': None, 'lang': None}
+
+    if not (url.startswith('http://'+BASE) or url.startswith('https://'+BASE)):
+        return set(), dict(), 0, tags, [], [], [], set()
+
     headers = {
         'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
     }
 
     responce = requests.get(url, headers = headers, allow_redirects = False)
+    contentType = responce.headers['content-type']
+    
+    
+    status_code = responce.status_code
+    if not contentType.startswith('text/html;'):
+        return set(), dict(), status_code, tags, [], [], [], set()
 
     page = responce.text
-    status_code = responce.status_code
-      
     
     soup = BeautifulSoup(page, "html.parser")
     # soup = BeautifulSoup(page, "lxml")
 
-    
+    external_links = set()
+     
     a_text_list = []
 
     links = soup.find_all('a', href=True)
@@ -147,7 +161,6 @@ def process_one_page(url):
         h_list.append([level, text])
             
     
-    tags = {'title': None, 'description': None, 'lang': None}
 
     title_element = soup.title
     if title_element is not None:
@@ -172,9 +185,10 @@ def process_one_page(url):
         row['src'] = src
         row['alt'] = alt
         row['title'] = title                                        
-        # row['anchor'] = str(link.text)
         data.append(row)
         uniq_data[(src, title, alt)] = None
+        
+        
 
     links = soup.find_all('a', href = True)
     link_for_save_set = set()
@@ -182,27 +196,31 @@ def process_one_page(url):
     for link in links:
         l = link['href']
         link2 = soup.find('img')
+        if l.startswith('http://') or l.startswith('https://') and not l.startswith('/') and not l.startswith('.') and not l.startswith('http://'+BASE) and not l.startswith('https://'+BASE):
+            external_links.add(l)
         if link2:
             src = link2.get('src', link2.get('data-src'))
             alt = link2.get('alt')
             title = link2.get('title')
             uniq_data[(src, title, alt)] = l
+        print(l)
         if l.startswith('tel:') or l.startswith('#') or l.startswith('mailto:'):
             continue
-        if not (l.startswith('/') or l.startswith('.') or l.startswith('http://'+BASE) or l.startswith('https://'+BASE)):
+        if not (l.startswith('/') or l.startswith('.')):# or l.startswith('http://'+BASE) or l.startswith('https://'+BASE)):
             continue
-        if not (l.startswith('http://'+BASE) or l.startswith('https://'+BASE)):
+        #if not (l.startswith('http://'+BASE) or l.startswith('https://'+BASE)):
+        if not (l.startswith('http://') or l.startswith('https://')):
             l = 'https://'+ BASE + l
         l = l.split('#')[0]
         link_for_save_set.add(l)
         link_for_save_list.append(l)
         
-    return link_for_save_set, uniq_data, status_code, tags, h_list, a_text_list, link_for_save_list
+    return link_for_save_set, uniq_data, status_code, tags, h_list, a_text_list, link_for_save_list, external_links
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         BASE = 'ingener.in.ua'
-        #BASE = 'ikscs.in.ua'
+        # BASE = 'ikscs.in.ua'
     elif len(sys.argv) == 2:
         BASE = sys.argv[1]
     else:
