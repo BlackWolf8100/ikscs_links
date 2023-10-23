@@ -219,8 +219,8 @@ def process_one_page(url):
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
-        BASE = 'ingener.in.ua'
-        # BASE = 'ikscs.in.ua'
+        # BASE = 'ingener.in.ua'
+        BASE = 'ikscs.in.ua'
     elif len(sys.argv) == 2:
         BASE = sys.argv[1]
     else:
