@@ -19,11 +19,11 @@ class My_base():
         self.mydb.close()
         
 
-    def export_pd(self, data, name):
-        df = pd.DataFrame(data)
-        engine = create_engine('mysql+pymysql://mykola:%s@176.114.1.160/mykola' % quote_plus("M@nenk023"))
-        # engine = create_engine("postgres://user:%s@host/database" % quote_plus("p@ss"))
-        df.to_sql(name=name, con=engine, if_exists='replace')
+    # def export_pd(self, data, name):
+    #     df = pd.DataFrame(data)
+    #     engine = create_engine('mysql+pymysql://**********:%s@************' % quote_plus("*******"))
+    #     # engine = create_engine("postgres://user:%s@host/database" % quote_plus("p@ss"))
+    #     df.to_sql(name=name, con=engine, if_exists='replace')
 
 
 def main():
