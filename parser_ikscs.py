@@ -5,15 +5,21 @@ from my_base import My_base
 from datetime import datetime, timedelta
 import sys
 
-WORK_TIME_SEC = 3000
+WORK_TIME_SEC = 12000
 SLEEP_TIME_SEC = 0.2
 # BASE = "ikscs.in.ua"
 # BASE = "ingener.in.ua"
 
+def format_time(time_duration):
+    hours, remainder = divmod(time_duration.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f'{hours}:{minutes}:{seconds}'
+
 
 def main(BASE):
 
-
+    start_time = datetime.now()
+    
     db = My_base()
     db.open()
     link_for_save_list = []
@@ -42,7 +48,7 @@ def main(BASE):
     count = 0 
     urls = [7]
     start_time = datetime.now()
-    print(start_time)
+    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
     while (len(urls) > 0) and datetime.now() - start_time < timedelta(seconds = WORK_TIME_SEC):
         print('Records:', len(urls), count)
         time.sleep(SLEEP_TIME_SEC)
@@ -67,7 +73,13 @@ def main(BASE):
                 db.cursor.executemany(sql, values)
 
                 sql = f'INSERT IGNORE INTO parse_a (domain, src, href, anchor) VALUES (%s, %s, %s, %s)'
-                values = [(BASE, url, link, a_text) for link, a_text in zip(link_for_save_list, a_text_list)]
+                values = []
+                for link, a_text in zip(link_for_save_list, a_text_list):
+                    has_stop_words = False
+                    for word in ('/store/', '/manufacturers/manufacturer/', '/sklad-cart/'):
+                        has_stop_words = has_stop_words and word in link
+                    if not has_stop_words:   
+                        values.append((BASE, url, link, a_text))
                 db.cursor.executemany(sql, values)
                 db.mydb.commit()
 
@@ -100,6 +112,12 @@ def main(BASE):
             db.mydb.commit()
             if datetime.now() - start_time > timedelta(seconds = WORK_TIME_SEC):
                 break
+    
+        end_time = datetime.now()
+        print(f'Кінцевий час: {end_time.strftime("%H:%M:%S")}')
+        elapsed_time = end_time - start_time
+        print(f'Загальний час роботи: {format_time(elapsed_time)}')
+    
     if (len(urls) == 0):
         sql = f'UPDATE parse SET status="COMPLETE" WHERE link = "https://{BASE}"' 
         db.cursor.execute(sql)
