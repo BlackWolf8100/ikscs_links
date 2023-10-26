@@ -7,6 +7,7 @@ import sys
 
 WORK_TIME_SEC = 12000
 SLEEP_TIME_SEC = 0.2
+LOG_FILE = 'parse.log'
 # BASE = "ikscs.in.ua"
 # BASE = "ingener.in.ua"
 
@@ -17,8 +18,7 @@ def format_time(time_duration):
 
 
 def main(BASE):
-
-    start_time = datetime.now()
+    
     
     db = My_base()
     db.open()
@@ -47,8 +47,6 @@ def main(BASE):
 
     count = 0 
     urls = [7]
-    start_time = datetime.now()
-    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
     while (len(urls) > 0) and datetime.now() - start_time < timedelta(seconds = WORK_TIME_SEC):
         print('Records:', len(urls), count)
         time.sleep(SLEEP_TIME_SEC)
@@ -113,10 +111,6 @@ def main(BASE):
             if datetime.now() - start_time > timedelta(seconds = WORK_TIME_SEC):
                 break
     
-        end_time = datetime.now()
-        print(f'Кінцевий час: {end_time.strftime("%H:%M:%S")}')
-        elapsed_time = end_time - start_time
-        print(f'Загальний час роботи: {format_time(elapsed_time)}')
     
     if (len(urls) == 0):
         sql = f'UPDATE parse SET status="COMPLETE" WHERE link = "https://{BASE}"' 
@@ -214,7 +208,7 @@ def process_one_page(url):
     for link in links:
         l = link['href']
         link2 = soup.find('img')
-        if l.startswith('http://') or l.startswith('https://') and not l.startswith('/') and not l.startswith('.') and not l.startswith('http://'+BASE) and not l.startswith('https://'+BASE):
+        if l.startswith('http://') or l.startswith('https://') and not l.startswith('http://'+BASE) and not l.startswith('https://'+BASE):
             external_links.add(l)
         if link2:
             src = link2.get('src', link2.get('data-src'))
@@ -236,6 +230,12 @@ def process_one_page(url):
     return link_for_save_set, uniq_data, status_code, tags, h_list, a_text_list, link_for_save_list, external_links
 
 if __name__ == '__main__':
+    start_time = datetime.now()
+    # BASE_DOMAIN = 'ingener.in.ua'
+    BASE_DOMAIN = 'ikscs.in.ua'
+    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
+    with open(LOG_FILE, 'at') as f:
+        f.write(f'domain = {BASE_DOMAIN}\nparsin starting {start_time:%Y-%m-%d %H:%M:%S}\n')
     if len(sys.argv) == 1:
         # BASE = 'ingener.in.ua'
         BASE = 'ikscs.in.ua'
@@ -245,3 +245,11 @@ if __name__ == '__main__':
         print(f'Usage: {sys.argv[0]} BASE')
         quit(1)
     main(BASE)
+    
+    end_time = datetime.now()
+    print(f'Кінцевий час: {end_time:%H:%M:%S}')
+    elapsed_time = end_time - start_time
+    print(f'Загальний час роботи: {format_time(elapsed_time)}')
+    
+    with open(LOG_FILE, 'at') as f:
+        f.write(f'parsin end {end_time:%Y-%m-%d %H:%M:%S}\n\n')
