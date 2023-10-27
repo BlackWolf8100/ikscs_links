@@ -10,9 +10,23 @@ class My_base():
             self.cfg = json.load(f)
 
     def open(self):
-        self.mydb = mysql.connector.connect(host=self.cfg['host'], user=self.cfg['user'], password=self.cfg['password'], database=self.cfg['db'])#, autocommit=True)
-        self.cursor = self.mydb.cursor(buffered=True)
-
+        try:
+            self.mydb = mysql.connector.connect(host=self.cfg['host'], user=self.cfg['user'], password=self.cfg['password'], database=self.cfg['db'])#, autocommit=True)
+            self.cursor = self.mydb.cursor(buffered=True)
+        except Exception as eror:
+            print(eror)
+            return False
+        return True
+    
+    def get_one_table(self, sql):
+        try:
+            self.cursor.execute(sql)
+            result = [e[0] for e in self.cursor.fetchall()]
+        except Exception as eror:
+            print(eror)
+            return []
+        return result
+    
     def close(self):
         self.cursor.reset()
         self.cursor.close()

@@ -21,12 +21,14 @@ def main(BASE):
     
     
     db = My_base()
-    db.open()
+    if not db.open():
+        print('Помилка роботи з базою даних!')
+        return 
     link_for_save_list = []
+    
     sql = f'SELECT `link` FROM parse WHERE `status` = "COMPLETE" AND `domain` = "{BASE}" LIMIT 1'
-    db.cursor.execute(sql)
-    urls = [e[0] for e in db.cursor.fetchall()]
-
+    urls = db.get_one_table(sql)
+    
     if urls:
         sql = f'DELETE FROM `parse` WHERE `domain` = "{BASE}"'
         db.cursor.execute(sql)
@@ -37,8 +39,9 @@ def main(BASE):
         db.mydb.commit()
     
     sql = f'SELECT EXISTS (SELECT 1 FROM `parse` WHERE `domain` = "{BASE}")'
-    db.cursor.execute(sql)
-    is_table_has_data = [e[0] for e in db.cursor.fetchall()]
+    is_table_has_data = db.get_one_table(sql)
+    
+    
     if not is_table_has_data[0]:
         sql = f'INSERT INTO parse (`link`, `domain`) VALUES ("https://{BASE}", "{BASE}")'
         db.cursor.execute(sql)
@@ -51,10 +54,9 @@ def main(BASE):
         print('Records:', len(urls), count)
         time.sleep(SLEEP_TIME_SEC)
         count += 1
+        
         sql = f'SELECT `link` FROM parse WHERE `status` IS NULL AND `domain` = "{BASE}"'
-       
-        db.cursor.execute(sql)
-        urls = [e[0] for e in db.cursor.fetchall()]                    
+        urls = db.get_one_table(sql)                   
     
         for url in urls:
             link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list, external_links  = process_one_page(url)
