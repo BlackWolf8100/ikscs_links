@@ -231,11 +231,6 @@ def process_one_page(url):
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    # BASE_DOMAIN = 'ingener.in.ua'
-    BASE_DOMAIN = 'ikscs.in.ua'
-    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
-    with open(LOG_FILE, 'at') as f:
-        f.write(f'domain = {BASE_DOMAIN}\nparsin starting {start_time:%Y-%m-%d %H:%M:%S}\n')
     if len(sys.argv) == 1:
         # BASE = 'ingener.in.ua'
         BASE = 'ikscs.in.ua'
@@ -244,12 +239,15 @@ if __name__ == '__main__':
     else:
         print(f'Usage: {sys.argv[0]} BASE')
         quit(1)
+    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
+    with open(LOG_FILE, 'at') as f:
+        f.write(f'domain = {BASE}\nparsin starting {start_time:%Y-%m-%d %H:%M:%S}\n')
     main(BASE)
     
     end_time = datetime.now()
     print(f'Кінцевий час: {end_time:%H:%M:%S}')
     elapsed_time = end_time - start_time
-    print(f'Загальний час роботи: {format_time(elapsed_time)}')
     
     with open(LOG_FILE, 'at') as f:
-        f.write(f'parsin end {end_time:%Y-%m-%d %H:%M:%S}\n\n')
+        f.write(f'parsin end {end_time:%Y-%m-%d %H:%M:%S}\n')
+        f.write(f'Загальний час роботи: {format_time(elapsed_time)}\n\n')
