@@ -7,7 +7,7 @@ import sys
 
 WORK_TIME_SEC = 12000
 SLEEP_TIME_SEC = 0.2
-LOG_FILE = 'parse.log'
+LOG_FILE = 'c:\\API\Mykola\ikscs_links\parse.log'
 # BASE = "ikscs.in.ua"
 # BASE = "ingener.in.ua"
 
@@ -20,7 +20,8 @@ def format_time(time_duration):
 def main(BASE):
     
     
-    db = My_base()
+    db = My_base(logfile = LOG_FILE)
+
     if not db.open():
         print('Помилка роботи з базою даних!')
         return 
@@ -28,6 +29,7 @@ def main(BASE):
     
     sql = f'SELECT `link` FROM parse WHERE `status` = "COMPLETE" AND `domain` = "{BASE}" LIMIT 1'
     urls = db.get_one_table(sql)
+    
     
     if urls:
         sql = f'DELETE FROM `parse` WHERE `domain` = "{BASE}"'
@@ -70,7 +72,8 @@ def main(BASE):
             if link_for_save_set:
                 sql = f'INSERT IGNORE INTO parse (link, status, referer, domain) VALUES (%s, %s, "{url}", "{BASE}")'
                 values = [(e, None) for e in link_for_save_set]
-                db.cursor.executemany(sql, values)
+                db.executemany(sql, values)
+                # db.cursor.executemany(sql, values)
 
                 sql = f'INSERT IGNORE INTO parse_a (domain, src, href, anchor) VALUES (%s, %s, %s, %s)'
                 values = []
@@ -81,7 +84,7 @@ def main(BASE):
                     if not has_stop_words:   
                         values.append((BASE, url, link, a_text))
                 db.cursor.executemany(sql, values)
-                db.mydb.commit()
+                # db.mydb.commit()
 
             if external_links:
                 sql = f'INSERT IGNORE INTO parse (domain, link) VALUES (%s, %s)'
@@ -234,8 +237,8 @@ def process_one_page(url):
 if __name__ == '__main__':
     start_time = datetime.now()
     if len(sys.argv) == 1:
-        # BASE = 'ingener.in.ua'
-        BASE = 'ikscs.in.ua'
+        BASE = 'ingener.in.ua'
+        # BASE = 'ikscs.in.ua'
     elif len(sys.argv) == 2:
         BASE = sys.argv[1]
     else:

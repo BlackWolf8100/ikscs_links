@@ -5,9 +5,16 @@ from sqlalchemy import create_engine
 from urllib.parse import quote_plus
 
 class My_base():
-    def __init__(self):
-        with open('credentials.json') as f:
+    def __init__(self, logfile = False):
+        with open('c:\\API\Mykola\ikscs_links\credentials.json') as f:
             self.cfg = json.load(f)
+        self.logfile = logfile
+        
+    def log(self, mesage):
+        if not self.logfile:
+            return
+        with open(self.logfile, 'at') as f:
+            f.write(f'{mesage}\n')
 
     def open(self):
         try:
@@ -26,6 +33,25 @@ class My_base():
             print(eror)
             return []
         return result
+    
+    def execute(self, sql):
+        try:
+            self.cursor.execute(sql)
+            self.mydb.commit()
+        except Exception as eror:
+            print(eror)
+            self.log(str(eror))
+            self.log(sql)
+            
+    def executemany(self, sql, values):
+        try:
+            self.cursor.executemany(sql, values)
+            self.mydb.commit()
+        except Exception as eror:
+            print(eror)
+            self.log(str(eror))
+            self.log(sql)
+            
     
     def close(self):
         self.cursor.reset()
