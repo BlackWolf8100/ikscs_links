@@ -2,6 +2,7 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from my_base import My_base
+from my_loger import My_loger
 from datetime import datetime, timedelta
 import sys
 
@@ -17,13 +18,14 @@ def format_time(time_duration):
     return f'{hours}:{minutes}:{seconds}'
 
 
-def main(BASE):
+def main(BASE, loger):
     
     
-    db = My_base(logfile = LOG_FILE)
+    db = My_base(logger = loger)
 
     if not db.open():
         print('Помилка роботи з базою даних!')
+        loger.log('Помилка роботи з базою даних!')
         return 
     link_for_save_list = []
     
@@ -62,12 +64,8 @@ def main(BASE):
     
         for url in urls:
             link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list, external_links  = process_one_page(url)
-            sql = f'UPDATE parse SET status_code = {status_code} WHERE link = "{url}"'
-            db.cursor.execute(sql)
             
-            data = []
-            for k, v in data_uniq.items():
-                data.append([*k, v])
+
         
             if link_for_save_set:
                 sql = f'INSERT IGNORE INTO parse (link, status, referer, domain) VALUES (%s, %s, "{url}", "{BASE}")'
@@ -94,8 +92,8 @@ def main(BASE):
 
 #ancros = link.text
             
-            sql = 'UPDATE parse SET status="READY", title=%s, description=%s, lang=%s WHERE link = %s'
-            db.cursor.execute(sql, (tags['title'], tags['description'], tags['lang'], url))
+            sql = 'UPDATE parse SET status="READY", status_code=%s, title=%s, description=%s, lang=%s WHERE link = %s'
+            db.cursor.execute(sql, (status_code, tags['title'], tags['description'], tags['lang'], url))
             db.mydb.commit()
             
             sql = f'INSERT IGNORE INTO parse_h (domain, src, level, anchor) VALUES ("{BASE}", "{url}", %s, %s)'
@@ -107,10 +105,14 @@ def main(BASE):
             # sql = f'INSERT IGNORE INTO parse_img (src, title, alt, a_href, refer, domain) VALUES (%s, %s, %s, %s, %s, "{BASE}")'
             
             sql = f'INSERT IGNORE INTO parse_img (src, title, alt, domain) VALUES (%s, %s, %s, "{BASE}")'
-            values = []
-            for row in data:
-                values.append((row[0], row[1], row[2]))
-                # values.append((*row, url))
+            # data = []
+            values = data_uniq.keys()
+            # for k, v in data_uniq.items():
+            #     data.append([*k, v])
+            # values = []
+            # for row in data:
+            #     values.append((row[0], row[1], row[2]))
+                  # values.append((*row, url))
             db.cursor.executemany(sql, values)               
             db.mydb.commit()
             if datetime.now() - start_time > timedelta(seconds = WORK_TIME_SEC):
@@ -244,15 +246,10 @@ if __name__ == '__main__':
     else:
         print(f'Usage: {sys.argv[0]} BASE')
         quit(1)
-    print(f'Початковий час: {start_time.strftime("%H:%M:%S")}')
-    with open(LOG_FILE, 'at') as f:
-        f.write(f'domain = {BASE}\nparsin starting {start_time:%Y-%m-%d %H:%M:%S}\n')
-    main(BASE)
+    loger = My_loger(LOG_FILE)
+    loger.log(f'domain = {BASE}\nparsin starting')
+    main(BASE, loger)
     
     end_time = datetime.now()
-    print(f'Кінцевий час: {end_time:%H:%M:%S}')
     elapsed_time = end_time - start_time
-    
-    with open(LOG_FILE, 'at') as f:
-        f.write(f'parsin end {end_time:%Y-%m-%d %H:%M:%S}\n')
-        f.write(f'Загальний час роботи: {format_time(elapsed_time)}\n\n')
+    loger.log(f'domain = {BASE}\nparsin end\nЗагальний час роботи: {format_time(elapsed_time)}\n\n')

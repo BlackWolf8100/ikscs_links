@@ -5,16 +5,15 @@ from sqlalchemy import create_engine
 from urllib.parse import quote_plus
 
 class My_base():
-    def __init__(self, logfile = False):
+    def __init__(self, logger = False):
         with open('c:\\API\Mykola\ikscs_links\credentials.json') as f:
             self.cfg = json.load(f)
-        self.logfile = logfile
+        self.logger = logger
         
     def log(self, mesage):
-        if not self.logfile:
+        if not self.logger:
             return
-        with open(self.logfile, 'at') as f:
-            f.write(f'{mesage}\n')
+        self.logger.log(mesage)
 
     def open(self):
         try:
