@@ -56,6 +56,7 @@ def main(BASE, loger):
     urls = [7]
     while (len(urls) > 0) and datetime.now() - start_time < timedelta(seconds = WORK_TIME_SEC):
         print('Records:', len(urls), count)
+        loger.log(f'Records: {len(urls)} {count}')
         time.sleep(SLEEP_TIME_SEC)
         count += 1
         
@@ -63,6 +64,7 @@ def main(BASE, loger):
         urls = db.get_one_table(sql)                   
     
         for url in urls:
+            loger.log(f'...{url}')
             link_for_save_set, data_uniq, status_code, tags, h_list, a_text_list, link_for_save_list, external_links  = process_one_page(url)
             
 
@@ -78,7 +80,7 @@ def main(BASE, loger):
                 for link, a_text in zip(link_for_save_list, a_text_list):
                     has_stop_words = False
                     for word in ('/store/', '/manufacturers/manufacturer/', '/sklad-cart/'):
-                        has_stop_words = has_stop_words and word in link
+                        has_stop_words = has_stop_words or (word in link)
                     if not has_stop_words:   
                         values.append((BASE, url, link, a_text))
                 db.cursor.executemany(sql, values)
@@ -86,7 +88,14 @@ def main(BASE, loger):
 
             if external_links:
                 sql = f'INSERT IGNORE INTO parse (domain, link) VALUES (%s, %s)'
-                values = [(BASE, external_link) for external_link in external_links]
+                list_two_save = []
+                for external_link in external_links:
+                    has_stop_words = False
+                    for word in ('/sklad-cart/add?', '?start=', '/store/product/view/', '/manufacturers/manufacturer/view/', '/store/category/view/'):
+                        has_stop_words = has_stop_words or (word in external_link)
+                    if not has_stop_words:
+                        list_two_save.append(external_link)
+                values = [(BASE, external_link) for external_link in list_two_save]
                 db.cursor.executemany(sql, values)
                 db.mydb.commit()
 
@@ -152,13 +161,9 @@ def process_one_page(url):
     soup = BeautifulSoup(page, "html.parser")
     # soup = BeautifulSoup(page, "lxml")
 
-    external_links = set()
-     
+    # Збираємо всі посилання 
     a_text_list = []
-
     links = soup.find_all('a', href=True)
-    link_for_save_set = set()
-    link_for_save_list = []
     for link in links:
         l = link['href']
         a_text = link.get_text(strip=True)
@@ -193,6 +198,7 @@ def process_one_page(url):
 
     links = soup.find_all('img')
     print(len(links), url)
+    loger.log(f'{len(links), url}')
 
     uniq_data = dict()
     data = []
@@ -212,6 +218,7 @@ def process_one_page(url):
     links = soup.find_all('a', href = True)
     link_for_save_set = set()
     link_for_save_list = []
+    external_links = set()
     for link in links:
         l = link['href']
         link2 = soup.find('img')
@@ -239,8 +246,8 @@ def process_one_page(url):
 if __name__ == '__main__':
     start_time = datetime.now()
     if len(sys.argv) == 1:
-        BASE = 'ingener.in.ua'
-        # BASE = 'ikscs.in.ua'
+        # BASE = 'ingener.in.ua'
+        BASE = 'ikscs.in.ua'
     elif len(sys.argv) == 2:
         BASE = sys.argv[1]
     else:

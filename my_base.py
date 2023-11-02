@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 
 class My_base():
     def __init__(self, logger = False):
-        with open('c:\\API\Mykola\ikscs_links\credentials.json') as f:
+        with open('c:\\API\Mykola\ikscs_links\credentials_MK.json') as f:
             self.cfg = json.load(f)
         self.logger = logger
         
