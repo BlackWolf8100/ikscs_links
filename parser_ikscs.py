@@ -52,7 +52,7 @@ def main(BASE, loger):
                     has_stop_words = False
                     for word in ('/shop-basket/add?', '/sklad-cart/add?', '?start=', '/product/view/', '/manufacturer/view/', '/category/view/'):
                         has_stop_words = has_stop_words or (word in link)
-                    if not has_stop_words:
+                    if 1: # not has_stop_words:
                         values.append((link, url, BASE))
                 db.executemany(sql, values)
 
@@ -67,7 +67,7 @@ def main(BASE, loger):
                 db.cursor.executemany(sql, values)
 
             if external_links:
-                sql = f'INSERT IGNORE INTO parse (domain, link) VALUES (%s, %s)'
+                sql = f'INSERT IGNORE INTO parse (domain, link, referer) VALUES (%s, %s, "{url}")'
                 values = [(BASE, external_link) for external_link in external_links]
                 db.cursor.executemany(sql, values)
                 db.mydb.commit()
