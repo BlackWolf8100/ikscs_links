@@ -50,9 +50,9 @@ def main(BASE, loger):
                 values = []
                 for link in set(link_for_save_list):
                     has_stop_words = False
-                    for word in ('/shop-basket/add?', '/sklad-cart/add?', '?start=', '/product/view/', '/manufacturer/view/', '/category/view/'):
+                    for word in ('/add?', '?start='):
                         has_stop_words = has_stop_words or (word in link)
-                    if 1: # not has_stop_words:
+                    if not has_stop_words:
                         values.append((link, url, BASE))
                 db.executemany(sql, values)
 
