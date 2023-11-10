@@ -8,4 +8,4 @@ class My_loger():
         if not self.logfile:
             return
         with open(self.logfile, 'at') as f:
-            f.write(f'{datetime.now():%H:%M:%S} {mesage}\n')
+            f.write(f'{datetime.now():%Y-%m-%d %H:%M:%S} {mesage}\n')

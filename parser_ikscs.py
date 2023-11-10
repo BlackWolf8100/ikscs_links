@@ -19,7 +19,7 @@ def format_time(time_duration):
 
 def main(BASE, loger):
     
-    db = My_base(dbms = 'mysql', logger = loger)
+    db = My_base(logger = loger)
 
     if not db.open():
         print('Помилка роботи з базою даних!')

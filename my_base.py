@@ -10,8 +10,7 @@ class My_base():
         if dbfile == None: 
             with open('c:\\API\Mykola\ikscs_links\credentials_MK.json') as f:
                 self.cfg = json.load(f)
-        else:
-            self.dbfile = dbfile
+        self.dbfile = dbfile
         self.logger = logger
         
     def log(self, mesage):
