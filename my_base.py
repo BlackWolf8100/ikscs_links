@@ -41,6 +41,7 @@ class My_base():
         return result
     
     def execute(self, sql):
+        sql = self.change_sql(sql)
         try:
             self.cursor.execute(sql)
             self.mydb.commit()
@@ -50,6 +51,7 @@ class My_base():
             self.log(sql)
             
     def executemany(self, sql, values):
+        sql = self.change_sql(sql)
         try:
             self.cursor.executemany(sql, values)
             self.mydb.commit()
@@ -57,7 +59,10 @@ class My_base():
             print(eror)
             self.log(str(eror))
             self.log(sql)
-            
+    
+    def change_sql(self, sql):
+        if self.dbfile:
+            sql = sql.replace('%s', '?')
     
     def close(self):
         if not self.dbfile:

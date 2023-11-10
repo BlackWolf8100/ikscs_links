@@ -19,6 +19,7 @@ def format_time(time_duration):
 
 def main(BASE, loger):
     
+    # db = My_base(logger = loger, dbfile = 'mytest.db')
     db = My_base(logger = loger)
 
     if not db.open():
@@ -64,27 +65,27 @@ def main(BASE, loger):
                         has_stop_words = has_stop_words or (word in link)
                     if not has_stop_words:   
                         values.append((BASE, url, link, a_text))
-                db.cursor.executemany(sql, values)
+                db.executemany(sql, values)
 
             if external_links:
                 sql = f'INSERT IGNORE INTO parse (domain, link, referer) VALUES (%s, %s, "{url}")'
                 values = [(BASE, external_link) for external_link in external_links]
-                db.cursor.executemany(sql, values)
+                db.executemany(sql, values)
                 db.mydb.commit()
 
 
             
             sql = 'UPDATE parse SET status="READY", status_code=%s, title=%s, description=%s, lang=%s WHERE link = %s'
-            db.cursor.execute(sql, (status_code, tags['title'], tags['description'], tags['lang'], url))
+            db.execute(sql, (status_code, tags['title'], tags['description'], tags['lang'], url))
             db.mydb.commit()
             
             sql = f'INSERT IGNORE INTO parse_h (domain, src, level, anchor) VALUES ("{BASE}", "{url}", %s, %s)'
-            db.cursor.executemany(sql, h_list)
+            db.executemany(sql, h_list)
             db.mydb.commit()
 
             
             sql = f'INSERT IGNORE INTO parse_img (src, title, alt, domain) VALUES (%s, %s, %s, "{BASE}")'
-            db.cursor.executemany(sql, uniq_data)               
+            db.executemany(sql, uniq_data)               
             db.mydb.commit()
             if datetime.now() - start_time > timedelta(seconds = WORK_TIME_SEC):
                 break
@@ -92,7 +93,7 @@ def main(BASE, loger):
     
     if (len(urls) == 0):
         sql = f'UPDATE parse SET status="COMPLETE" WHERE link = "https://{BASE}"' 
-        db.cursor.execute(sql)
+        db.execute(sql)
         db.mydb.commit()
     db.close()
 
@@ -194,19 +195,19 @@ def start_procedure(db):
     
     if urls:
         sql = f'DELETE FROM `parse` WHERE `domain` = "{BASE}"'
-        db.cursor.execute(sql)
+        db.execute(sql)
         sql = f'DELETE FROM `parse_img` WHERE `domain` = "{BASE}"'
-        db.cursor.execute(sql)
+        db.execute(sql)
         sql = f'INSERT INTO parse (`link`, `domain`) VALUES ("https://{BASE}", "{BASE}")'
-        db.cursor.execute(sql)
+        db.execute(sql)
         db.mydb.commit()
     
     sql = f'SELECT EXISTS (SELECT 1 FROM `parse` WHERE `domain` = "{BASE}")'
     is_table_has_data = db.get_one_table(sql)
     
-    if not is_table_has_data[0]:
+    if not is_table_has_data[0]: # 2do Виправити помилку при неіснуючих таблицях
         sql = f'INSERT INTO parse (`link`, `domain`) VALUES ("https://{BASE}", "{BASE}")'
-        db.cursor.execute(sql)
+        db.execute(sql)
         db.mydb.commit()
         
 if __name__ == '__main__':
