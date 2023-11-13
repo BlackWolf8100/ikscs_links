@@ -40,10 +40,10 @@ class My_base():
             return []
         return result
     
-    def execute(self, sql):
+    def execute(self, sql, values = None):
         sql = self.change_sql(sql)
         try:
-            self.cursor.execute(sql)
+            self.cursor.execute(sql, values)
             self.mydb.commit()
         except Exception as eror:
             print(eror)
@@ -63,6 +63,8 @@ class My_base():
     def change_sql(self, sql):
         if self.dbfile:
             sql = sql.replace('%s', '?')
+            sql = sql.replace('INSERT IGNORE', 'INSERT OR IGNORE')
+        return sql
     
     def close(self):
         if not self.dbfile:

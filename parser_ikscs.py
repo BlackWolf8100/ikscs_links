@@ -92,7 +92,7 @@ def main(BASE, loger):
     
     
     if (len(urls) == 0):
-        sql = f'UPDATE parse SET status="COMPLETE" WHERE link = "https://{BASE}"' 
+        sql = f'UPDATE parse SET status="COMPLETE {datetime.now():%Y-%m-%d %H:%M:%S}" WHERE link = "https://{BASE}"' 
         db.execute(sql)
         db.mydb.commit()
     db.close()
@@ -190,7 +190,7 @@ def process_one_page(url):
     return uniq_data, status_code, tags, h_list, a_text_list, link_for_save_list, external_links
 
 def start_procedure(db):
-    sql = f'SELECT `link` FROM parse WHERE `status` = "COMPLETE" AND `domain` = "{BASE}" LIMIT 1'
+    sql = f'SELECT `link` FROM parse WHERE `status` LIKE "COMPLETE%" AND `domain` = "{BASE}" LIMIT 1'
     urls = db.get_one_table(sql)
     
     if urls:
