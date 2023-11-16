@@ -19,8 +19,8 @@ def format_time(time_duration):
 
 def main(BASE, loger):
     
-    # db = My_base(logger = loger, dbfile = 'mytest.db')
-    db = My_base(logger = loger)
+    db = My_base(logger = loger, dbfile = 'C:/api/Mykola/copy_tables/mytest_out.db')
+    # db = My_base(logger = loger)
 
     if not db.open():
         print('Помилка роботи з базою даних!')
