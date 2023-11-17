@@ -43,7 +43,10 @@ class My_base():
     def execute(self, sql, values = None):
         sql = self.change_sql(sql)
         try:
-            self.cursor.execute(sql, values)
+            if values:
+                self.cursor.execute(sql, values)
+            else:
+                self.cursor.execute(sql)
             self.mydb.commit()
         except Exception as eror:
             print(eror)
