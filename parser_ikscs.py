@@ -195,6 +195,10 @@ def start_procedure(db):
     
     if urls:
         sql = f'DELETE FROM `parse` WHERE `domain` = "{BASE}"'
+        db.execute(sql) 
+        sql = f'DELETE FROM `parse_a` WHERE `domain` = "{BASE}"'
+        db.execute(sql)
+        sql = f'DELETE FROM `parse_h` WHERE `domain` = "{BASE}"'
         db.execute(sql)
         sql = f'DELETE FROM `parse_img` WHERE `domain` = "{BASE}"'
         db.execute(sql)
